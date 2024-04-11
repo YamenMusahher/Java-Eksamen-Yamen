@@ -1,11 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon Oversikt</title>
-</head>
-<body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Oversikt</title>
+<style>
+  .pokemon-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    text-align: center;
+    display: inline-block;
+    vertical-align: top;
+    width: 150px;
+  }
+
+  .pokemon-card img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* Tilpass bakgrunnsfarger basert på Pokémon-typer */
+  .type-BUG { background-color: #A8B820; }
+  .type-DARK { background-color: #705848; }
+  .type-DRAGON { background-color: #7038F8; }
+  .type-ELECTRIC { background-color: #F8D030; }
+  .type-FAIRY { background-color: #EE99AC; }
+  .type-FIGHTING { background-color: #C03028; }
+  .type-FIRE { background-color: #F08030; }
+  .type-FLYING { background-color: #A890F0; }
+  .type-GHOST { background-color: #705898; }
+  .type-GRASS { background-color: #78C850; }
+  .type-GROUND { background-color: #E0C068; }
+  .type-ICE { background-color: #98D8D8; }
+  .type-NORMAL { background-color: #A8A878; }
+  .type-POISON { background-color: #A040A0; }
+  .type-PSYCHIC { background-color: #F85888; }
+  .type-ROCK { background-color: #B8A038; }
+  .type-STEEL { background-color: #B8B8D0; }
+  .type-WATER { background-color: #6890F0; }
+
+  #create-pokemon-form {
+    margin-bottom: 20px;
+  }
+
+  #create-pokemon-form input, #create-pokemon-form select {
+    margin-right: 10px;
+  }
+</style>
 </head>
 <body>
 
@@ -38,91 +80,90 @@
 <div id="pokemon-container"></div>
 
 <script>
-    let allPokemon = []; // Lager for alle Pokémon-data
-    
-    async function fetchPokemon() {
-      try {
-        for (let i = 1; i <= 50; i++) {
-          const url = `https://pokeapi.co/api/v2/pokemon/${i}`;
-          const response = await fetch(url);
-          const pokemon = await response.json();
-          allPokemon.push({
-            id: pokemon.id,
-            name: pokemon.name,
-            image: pokemon.sprites.front_default,
-            types: pokemon.types.map(typeInfo => typeInfo.type.name)
-          });
-        }
-      } catch (error) {
-        console.error("Det oppstod en feil ved henting av Pokémon-data: ", error);
-      }
-      loadSavedPokemon();
-    }
-    
-    function displayPokemon(pokemonArray) {
-      const container = document.getElementById('pokemon-container');
-      container.innerHTML = '';
-      pokemonArray.forEach(pokemon => {
-        const typeClass = pokemon.types.length ? `type-${pokemon.types[0].toUpperCase()}` : '';
-        const card = `
-          <div class="pokemon-card ${typeClass}">
-            <img src="${pokemon.image}" alt="${pokemon.name}" />
-            <h2>${pokemon.name}</h2>
-            <p>Type: ${pokemon.types.join(', ')}</p>
-            <button onclick="deletePokemon(${pokemon.id})">Slette</button>
-          </div>
-        `;
-        container.innerHTML += card;
+let allPokemon = []; // Lager for alle Pokémon-data
+
+async function fetchPokemon() {
+  try {
+    for (let i = 1; i <= 50; i++) {
+      const url = `https://pokeapi.co/api/v2/pokemon/${i}`;
+      const response = await fetch(url);
+      const pokemon = await response.json();
+      allPokemon.push({
+        id: pokemon.id,
+        name: pokemon.name,
+        image: pokemon.sprites.front_default,
+        types: pokemon.types.map(typeInfo => typeInfo.type.name)
       });
     }
-    
-    function getNextId() {
-      if (!allPokemon.length) return 1;
-      return Math.max(...allPokemon.map(p => p.id)) + 1; // Finner den høyeste ID-en og legger til 1
-    }
-    
-    function createPokemon() {
-      const nameInput = document.getElementById('pokemon-name');
-      const typeSelect = document.getElementById('pokemon-type');
-      if (!nameInput.value || !typeSelect.value) {
-        alert('Vennligst fyll ut både navn og type for Pokémon.');
-        return;
-      }
-      const newPokemon = {
-        id: getNextId(), // Får neste tilgjengelige ID
-        name: nameInput.value,
-        image: 'https://example.com/default-pokemon-image.png', // Standard bilde-URL
-        types: [typeSelect.value],
-      };
-    
-      allPokemon.push(newPokemon);
-      savePokemonToLocalStorage();
-      displayPokemon(allPokemon);
-    
-      nameInput.value = ''; // Tøm input-feltet
-      typeSelect.value = ''; // Tøm select-feltet
-    }
-    
-    function savePokemonToLocalStorage() {
-      const savedPokemon = allPokemon.filter(pokemon => pokemon.id > 50);
-      localStorage.setItem('savedPokemon', JSON.stringify(savedPokemon));
-    }
-    
-    function loadSavedPokemon() {
-      const savedPokemon = JSON.parse(localStorage.getItem('savedPokemon') || '[]');
-      allPokemon = [...allPokemon, ...savedPokemon];
-      displayPokemon(allPokemon);
-    }
-    
-    function deletePokemon(id) {
-      allPokemon = allPokemon.filter(pokemon => pokemon.id !== id);
-      savePokemonToLocalStorage();
-      displayPokemon(allPokemon);
-    }
-    
-    fetchPokemon();
-    </script>
-    
-    
+  } catch (error) {
+    console.error("Det oppstod en feil ved henting av Pokémon-data: ", error);
+  }
+  loadSavedPokemon();
+}
+
+function displayPokemon(pokemonArray) {
+  const container = document.getElementById('pokemon-container');
+  container.innerHTML = '';
+  pokemonArray.forEach(pokemon => {
+    const typeClass = pokemon.types.length ? `type-${pokemon.types[0].toUpperCase()}` : '';
+    const card = `
+      <div class="pokemon-card ${typeClass}">
+        <img src="${pokemon.image}" alt="${pokemon.name}" />
+        <h2>${pokemon.name}</h2>
+        <p>Type: ${pokemon.types.join(', ')}</p>
+        <button onclick="deletePokemon(${pokemon.id})">Slette</button>
+      </div>
+    `;
+    container.innerHTML += card;
+  });
+}
+
+function getNextId() {
+  if (!allPokemon.length) return 1;
+  return Math.max(...allPokemon.map(p => p.id)) + 1; // Finner den høyeste ID-en og legger til 1
+}
+
+function createPokemon() {
+  const nameInput = document.getElementById('pokemon-name');
+  const typeSelect = document.getElementById('pokemon-type');
+  if (!nameInput.value || !typeSelect.value) {
+    alert('Vennligst fyll ut både navn og type for Pokémon.');
+    return;
+  }
+  const newPokemon = {
+    id: getNextId(), // Får neste tilgjengelige ID
+    name: nameInput.value,
+    image: 'https://example.com/default-pokemon-image.png', // Standard bilde-URL
+    types: [typeSelect.value],
+  };
+
+  allPokemon.push(newPokemon);
+  savePokemonToLocalStorage();
+  displayPokemon(allPokemon);
+
+  nameInput.value = ''; // Tøm input-feltet
+  typeSelect.value = ''; // Tøm select-feltet
+}
+
+function savePokemonToLocalStorage() {
+  const savedPokemon = allPokemon.filter(pokemon => pokemon.id > 50);
+  localStorage.setItem('savedPokemon', JSON.stringify(savedPokemon));
+}
+
+function loadSavedPokemon() {
+  const savedPokemon = JSON.parse(localStorage.getItem('savedPokemon') || '[]');
+  allPokemon = [...allPokemon, ...savedPokemon];
+  displayPokemon(allPokemon);
+}
+
+function deletePokemon(id) {
+  allPokemon = allPokemon.filter(pokemon => pokemon.id !== id);
+  savePokemonToLocalStorage();
+  displayPokemon(allPokemon);
+}
+
+fetchPokemon();
+</script>
+
 </body>
 </html>
