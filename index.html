@@ -78,6 +78,17 @@
   <button onclick="createPokemon()">Lag din Pokémon</button>
 </div>
 
+<div id="battle-form">
+    <select id="pokemon-selector1">
+      <!-- Dynamisk genererte Pokémon-valg -->
+    </select>
+    <select id="pokemon-selector2">
+      <!-- Dynamisk genererte Pokémon-valg -->
+    </select>
+    <button onclick="initiateBattle()">Slåss!</button>
+  </div>
+  
+
 <div id="pokemon-container"></div>
 
 <script>
@@ -90,11 +101,17 @@ async function fetchPokemon() {
       const response = await fetch(url);
       const pokemon = await response.json();
       allPokemon.push({
-        id: pokemon.id,
-        name: pokemon.name,
-        image: pokemon.sprites.front_default,
-        types: pokemon.types.map(typeInfo => typeInfo.type.name)
-      });
+  id: pokemon.id,
+  name: pokemon.name,
+  image: pokemon.sprites.front_default,
+  types: pokemon.types.map(typeInfo => typeInfo.type.name),
+  stats: pokemon.stats.map(statInfo => ({
+    name: statInfo.stat.name,
+    value: statInfo.base_stat
+  }))
+});
+
+
     }
   } catch (error) {
     console.error("Det oppstod en feil ved henting av Pokémon-data: ", error);
@@ -102,6 +119,32 @@ async function fetchPokemon() {
     loadSavedPokemon();
   }
 }
+
+function pokemonBattle(pokemonId1, pokemonId2) {
+  const pokemon1 = allPokemon.find(p => p.id === pokemonId1);
+  const pokemon2 = allPokemon.find(p => p.id === pokemonId2);
+
+  if (!pokemon1 || !pokemon2) {
+    alert('En eller begge av Pokémonene finnes ikke.');
+    return;
+  }
+
+  const totalStats1 = pokemon1.stats.reduce((total, stat) => total + stat.value, 0);
+  const totalStats2 = pokemon2.stats.reduce((total, stat) => total + stat.value, 0);
+
+  let resultMessage;
+  if (totalStats1 > totalStats2) {
+    resultMessage = `${pokemon1.name} vinner over ${pokemon2.name}!`;
+  } else if (totalStats2 > totalStats1) {
+    resultMessage = `${pokemon2.name} vinner over ${pokemon1.name}!`;
+  } else {
+    resultMessage = 'Det er uavgjort!';
+  }
+
+  alert(resultMessage);
+}
+
+
 
 function displayPokemon(pokemonArray) {
   const container = document.getElementById('pokemon-container');
@@ -121,6 +164,25 @@ function displayPokemon(pokemonArray) {
   });
 }
 
+function updateSelectors() {
+  const selector1 = document.getElementById('pokemon-selector1');
+  const selector2 = document.getElementById('pokemon-selector2');
+  selector1.innerHTML = '';
+  selector2.innerHTML = '';
+  allPokemon.forEach(pokemon => {
+    const option1 = document.createElement('option');
+    const option2 = document.createElement('option');
+    option1.value = option2.value = pokemon.id;
+    option1.textContent = option2.textContent = pokemon.name;
+    selector1.appendChild(option1);
+    selector2.appendChild(option2);
+  });
+}
+
+// Kall denne funksjonen på slutten av displayPokemon
+updateSelectors();
+
+
 function editPokemon(id) {
   const pokemonToEdit = allPokemon.find(pokemon => pokemon.id === id);
   if (pokemonToEdit) {
@@ -139,7 +201,6 @@ function editPokemon(id) {
 
 
 
-
 function getNextId() {
   if (!allPokemon.length) return 1;
   return Math.max(...allPokemon.map(p => p.id)) + 1;
@@ -155,7 +216,7 @@ function createPokemon() {
   const newPokemon = {
     id: getNextId(),
     name: nameInput.value,
-    image: 'https://pokeapi.co/api/v2/pokemon/ditto',
+    image: 'https://cdn.pixabay.com/photo/2016/12/07/05/51/pokemon-1888657_1280.png',
     types: [typeSelect.value],
   };
 
@@ -185,6 +246,14 @@ function deletePokemon(id) {
 }
 
 fetchPokemon();
+
+function initiateBattle() {
+  const pokemonId1 = document.getElementById('pokemon-selector1').value;
+  const pokemonId2 = document.getElementById('pokemon-selector2').value;
+  pokemonBattle(parseInt(pokemonId1, 10), parseInt(pokemonId2, 10));
+}
+
+
 </script>
 
 </body>
