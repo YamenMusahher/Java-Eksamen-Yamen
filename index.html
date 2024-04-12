@@ -125,13 +125,18 @@ function editPokemon(id) {
   const pokemonToEdit = allPokemon.find(pokemon => pokemon.id === id);
   if (pokemonToEdit) {
     const newName = prompt("Oppdater Pokémon-navn:", pokemonToEdit.name);
-    if (newName) {
+    const newType = prompt("Oppdater Pokémon-type (bug, dark, dragon, ...):", pokemonToEdit.types.join(', '));
+    if (newName !== null) { 
       pokemonToEdit.name = newName;
-      displayPokemon(allPokemon);
-      savePokemonToLocalStorage();
     }
+    if (newType !== null && newType.trim() !== '') {
+      pokemonToEdit.types = newType.split(',').map(type => type.trim());
+    }
+    displayPokemon(allPokemon);
+    savePokemonToLocalStorage();
   }
 }
+
 
 
 
