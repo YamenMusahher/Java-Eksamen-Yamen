@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -80,7 +81,7 @@
 <div id="pokemon-container"></div>
 
 <script>
-let allPokemon = []; // Lager for alle Pokémon-data
+let allPokemon = []; 
 
 async function fetchPokemon() {
   try {
@@ -106,18 +107,33 @@ function displayPokemon(pokemonArray) {
   const container = document.getElementById('pokemon-container');
   container.innerHTML = '';
   pokemonArray.forEach(pokemon => {
-    const typeClass = `type-${pokemon.types[0]}`; // Sørger for riktig type klassenavn
+    const typeClass = `type-${pokemon.types[0]}`;
     const card = `
       <div class="pokemon-card ${typeClass}">
         <img src="${pokemon.image}" alt="Bilde av ${pokemon.name}" />
         <h2>${pokemon.name}</h2>
         <p>Type: ${pokemon.types.join(', ')}</p>
+        <button onclick="editPokemon(${pokemon.id})">Rediger</button>
         <button onclick="deletePokemon(${pokemon.id})">Slette</button>
       </div>
     `;
     container.innerHTML += card;
   });
 }
+
+function editPokemon(id) {
+  const pokemonToEdit = allPokemon.find(pokemon => pokemon.id === id);
+  if (pokemonToEdit) {
+    const newName = prompt("Oppdater Pokémon-navn:", pokemonToEdit.name);
+    if (newName) {
+      pokemonToEdit.name = newName;
+      displayPokemon(allPokemon);
+      savePokemonToLocalStorage();
+    }
+  }
+}
+
+
 
 function getNextId() {
   if (!allPokemon.length) return 1;
@@ -134,7 +150,7 @@ function createPokemon() {
   const newPokemon = {
     id: getNextId(),
     name: nameInput.value,
-    image: 'https://example.com/default-pokemon-image.png',
+    image: 'https://pokeapi.co/api/v2/pokemon/ditto',
     types: [typeSelect.value],
   };
 
