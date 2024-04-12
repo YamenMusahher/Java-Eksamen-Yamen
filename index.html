@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -21,7 +20,6 @@
     height: auto;
   }
 
-  /* Tilpass bakgrunnsfarger basert på Pokémon-typer */
   .type-bug { background-color: #A8B820; }
   .type-dark { background-color: #705848; }
   .type-dragon { background-color: #7038F8; }
@@ -79,182 +77,167 @@
 </div>
 
 <div id="battle-form">
-    <select id="pokemon-selector1">
-      <!-- Dynamisk genererte Pokémon-valg -->
-    </select>
-    <select id="pokemon-selector2">
-      <!-- Dynamisk genererte Pokémon-valg -->
-    </select>
-    <button onclick="initiateBattle()">Slåss!</button>
-  </div>
-  
+  <select id="pokemon-selector1">
+  </select>
+  <select id="pokemon-selector2">
+  </select>
+  <button onclick="initiateBattle()">Slåss!</button>
+</div>
 
 <div id="pokemon-container"></div>
 
 <script>
-let allPokemon = []; 
-
-async function fetchPokemon() {
-  try {
-    for (let i = 1; i <= 50; i++) {
-      const url = `https://pokeapi.co/api/v2/pokemon/${i}`;
-      const response = await fetch(url);
-      const pokemon = await response.json();
-      allPokemon.push({
-  id: pokemon.id,
-  name: pokemon.name,
-  image: pokemon.sprites.front_default,
-  types: pokemon.types.map(typeInfo => typeInfo.type.name),
-  stats: pokemon.stats.map(statInfo => ({
-    name: statInfo.stat.name,
-    value: statInfo.base_stat
-  }))
-});
-
-
+  let allPokemon = []; 
+  
+  async function fetchPokemon() {
+    try {
+      for (let i = 1; i <= 50; i++) {
+        const url = `https://pokeapi.co/api/v2/pokemon/${i}`;
+        const response = await fetch(url);
+        const pokemon = await response.json();
+        allPokemon.push({
+          id: pokemon.id,
+          name: pokemon.name,
+          image: pokemon.sprites.front_default,
+          types: pokemon.types.map(typeInfo => typeInfo.type.name),
+          stats: pokemon.stats.map(statInfo => ({
+            name: statInfo.stat.name,
+            value: statInfo.base_stat
+          }))
+        });
+      }
+    } catch (error) {
+      console.error("Det oppstod en feil ved henting av Pokémon-data: ", error);
+    } finally {
+      loadSavedPokemon();
     }
-  } catch (error) {
-    console.error("Det oppstod en feil ved henting av Pokémon-data: ", error);
-  } finally {
-    loadSavedPokemon();
   }
-}
-
-function pokemonBattle(pokemonId1, pokemonId2) {
-  const pokemon1 = allPokemon.find(p => p.id === pokemonId1);
-  const pokemon2 = allPokemon.find(p => p.id === pokemonId2);
-
-  if (!pokemon1 || !pokemon2) {
-    alert('En eller begge av Pokémonene finnes ikke.');
-    return;
+  
+  function displayPokemon(pokemonArray) {
+    const container = document.getElementById('pokemon-container');
+    container.innerHTML = '';
+    pokemonArray.forEach(pokemon => {
+      const typeClass = `type-${pokemon.types[0]}`;
+      const card = `
+        <div class="pokemon-card ${typeClass}">
+          <img src="${pokemon.image}" alt="Bilde av ${pokemon.name}" />
+          <h2>${pokemon.name}</h2>
+          <p>Type: ${pokemon.types.join(', ')}</p>
+          <button onclick="editPokemon(${pokemon.id})">Rediger</button>
+          <button onclick="deletePokemon(${pokemon.id})">Slette</button>
+        </div>
+      `;
+      container.innerHTML += card;
+    });
+    updateSelectors();
   }
-
-  const totalStats1 = pokemon1.stats.reduce((total, stat) => total + stat.value, 0);
-  const totalStats2 = pokemon2.stats.reduce((total, stat) => total + stat.value, 0);
-
-  let resultMessage;
-  if (totalStats1 > totalStats2) {
-    resultMessage = `${pokemon1.name} vinner over ${pokemon2.name}!`;
-  } else if (totalStats2 > totalStats1) {
-    resultMessage = `${pokemon2.name} vinner over ${pokemon1.name}!`;
-  } else {
-    resultMessage = 'Det er uavgjort!';
+  
+  function updateSelectors() {
+    const selector1 = document.getElementById('pokemon-selector1');
+    const selector2 = document.getElementById('pokemon-selector2');
+    selector1.innerHTML = '<option value="">Velg en Pokémon</option>';
+    selector2.innerHTML = '<option value="">Velg en Pokémon</option>';
+    allPokemon.forEach(pokemon => {
+      const option1 = document.createElement('option');
+      const option2 = document.createElement('option');
+      option1.value = pokemon.id;
+      option1.textContent = pokemon.name;
+      option2.value = pokemon.id;
+      option2.textContent = pokemon.name;
+      selector1.appendChild(option1);
+      selector2.appendChild(option2);
+    });
   }
-
-  alert(resultMessage);
-}
-
-
-
-function displayPokemon(pokemonArray) {
-  const container = document.getElementById('pokemon-container');
-  container.innerHTML = '';
-  pokemonArray.forEach(pokemon => {
-    const typeClass = `type-${pokemon.types[0]}`;
-    const card = `
-      <div class="pokemon-card ${typeClass}">
-        <img src="${pokemon.image}" alt="Bilde av ${pokemon.name}" />
-        <h2>${pokemon.name}</h2>
-        <p>Type: ${pokemon.types.join(', ')}</p>
-        <button onclick="editPokemon(${pokemon.id})">Rediger</button>
-        <button onclick="deletePokemon(${pokemon.id})">Slette</button>
-      </div>
-    `;
-    container.innerHTML += card;
-  });
-}
-
-function updateSelectors() {
-  const selector1 = document.getElementById('pokemon-selector1');
-  const selector2 = document.getElementById('pokemon-selector2');
-  selector1.innerHTML = '';
-  selector2.innerHTML = '';
-  allPokemon.forEach(pokemon => {
-    const option1 = document.createElement('option');
-    const option2 = document.createElement('option');
-    option1.value = option2.value = pokemon.id;
-    option1.textContent = option2.textContent = pokemon.name;
-    selector1.appendChild(option1);
-    selector2.appendChild(option2);
-  });
-}
-
-// Kall denne funksjonen på slutten av displayPokemon
-updateSelectors();
-
-
-function editPokemon(id) {
-  const pokemonToEdit = allPokemon.find(pokemon => pokemon.id === id);
-  if (pokemonToEdit) {
+  
+  function loadSavedPokemon() {
+    const savedPokemon = JSON.parse(localStorage.getItem('savedPokemon') || '[]');
+    allPokemon = [...allPokemon, ...savedPokemon];
+    displayPokemon(allPokemon);
+  }
+  
+  function editPokemon(id) {
+    const pokemonToEdit = allPokemon.find(p => p.id === id);
+    if (!pokemonToEdit) return;
+  
     const newName = prompt("Oppdater Pokémon-navn:", pokemonToEdit.name);
     const newType = prompt("Oppdater Pokémon-type (bug, dark, dragon, ...):", pokemonToEdit.types.join(', '));
-    if (newName !== null) { 
+  
+    if (newName !== null && newName.trim() !== '') {
       pokemonToEdit.name = newName;
     }
     if (newType !== null && newType.trim() !== '') {
       pokemonToEdit.types = newType.split(',').map(type => type.trim());
     }
-    displayPokemon(allPokemon);
     savePokemonToLocalStorage();
+    displayPokemon(allPokemon);
   }
-}
-
-
-
-function getNextId() {
-  if (!allPokemon.length) return 1;
-  return Math.max(...allPokemon.map(p => p.id)) + 1;
-}
-
-function createPokemon() {
-  const nameInput = document.getElementById('pokemon-name');
-  const typeSelect = document.getElementById('pokemon-type');
-  if (!nameInput.value || !typeSelect.value) {
-    alert('Vennligst fyll ut både navn og type for Pokémon.');
-    return;
+  
+  function createPokemon() {
+    const nameInput = document.getElementById('pokemon-name');
+    const typeSelect = document.getElementById('pokemon-type');
+    if (!nameInput.value.trim() || !typeSelect.value) {
+      alert('Vennligst fyll ut både navn og type for Pokémon.');
+      return;
+    }
+    const newPokemon = {
+      id: getNextId(),
+      name: nameInput.value.trim(),
+      image: 'https://cdn.pixabay.com/photo/2016/12/07/05/51/pokemon-1888657_1280.png',
+      types: [typeSelect.value],
+    };
+    allPokemon.push(newPokemon);
+    savePokemonToLocalStorage();
+    displayPokemon(allPokemon);
+    nameInput.value = '';
+    typeSelect.value = '';
   }
-  const newPokemon = {
-    id: getNextId(),
-    name: nameInput.value,
-    image: 'https://cdn.pixabay.com/photo/2016/12/07/05/51/pokemon-1888657_1280.png',
-    types: [typeSelect.value],
-  };
-
-  allPokemon.push(newPokemon);
-  savePokemonToLocalStorage();
-  displayPokemon(allPokemon);
-
-  nameInput.value = '';
-  typeSelect.value = '';
-}
-
-function savePokemonToLocalStorage() {
-  const savedPokemon = allPokemon.filter(pokemon => pokemon.id > 50);
-  localStorage.setItem('savedPokemon', JSON.stringify(savedPokemon));
-}
-
-function loadSavedPokemon() {
-  const savedPokemon = JSON.parse(localStorage.getItem('savedPokemon') || '[]');
-  allPokemon = [...allPokemon, ...savedPokemon];
-  displayPokemon(allPokemon);
-}
-
-function deletePokemon(id) {
-  allPokemon = allPokemon.filter(pokemon => pokemon.id !== id);
-  savePokemonToLocalStorage();
-  displayPokemon(allPokemon);
-}
-
-fetchPokemon();
-
-function initiateBattle() {
-  const pokemonId1 = document.getElementById('pokemon-selector1').value;
-  const pokemonId2 = document.getElementById('pokemon-selector2').value;
-  pokemonBattle(parseInt(pokemonId1, 10), parseInt(pokemonId2, 10));
-}
-
-
-</script>
-
-</body>
-</html>
+  
+  function getNextId() {
+    return allPokemon.length ? Math.max(...allPokemon.map(p => p.id)) + 1 : 1;
+  }
+  
+  function savePokemonToLocalStorage() {
+    localStorage.setItem('savedPokemon', JSON.stringify(allPokemon));
+  }
+  
+  function deletePokemon(id) {
+    allPokemon = allPokemon.filter(p => p.id !== id);
+    savePokemonToLocalStorage();
+    displayPokemon(allPokemon);
+  }
+  
+  function initiateBattle() {
+    const pokemonId1 = document.getElementById('pokemon-selector1').value;
+    const pokemonId2 = document.getElementById('pokemon-selector2').value;
+    pokemonBattle(parseInt(pokemonId1, 10), parseInt(pokemonId2, 10));
+  }
+  
+  function pokemonBattle(pokemonId1, pokemonId2) {
+    const pokemon1 = allPokemon.find(p => p.id === pokemonId1);
+    const pokemon2 = allPokemon.find(p => p.id === pokemonId2);
+  
+    if (!pokemon1 || !pokemon2) {
+      alert('En eller begge av Pokémonene finnes ikke.');
+      return;
+    }
+  
+    const totalStats1 = pokemon1.stats.reduce((total, stat) => total + stat.value, 0);
+    const totalStats2 = pokemon2.stats.reduce((total, stat) => total + stat.value, 0);
+  
+    let resultMessage;
+    if (totalStats1 > totalStats2) {
+      resultMessage = `${pokemon1.name} vinner over ${pokemon2.name}!`;
+    } else if (totalStats2 > totalStats1) {
+      resultMessage = `${pokemon2.name} vinner over ${pokemon1.name}!`;
+    } else {
+      resultMessage = 'Det er uavgjort!';
+    }
+  
+    alert(resultMessage);
+  }
+  
+  fetchPokemon();
+  </script>
+  </body>
+  </html>
+  
