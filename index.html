@@ -21,24 +21,24 @@
   }
 
   /* Tilpass bakgrunnsfarger basert på Pokémon-typer */
-  .type-BUG { background-color: #A8B820; }
-  .type-DARK { background-color: #705848; }
-  .type-DRAGON { background-color: #7038F8; }
-  .type-ELECTRIC { background-color: #F8D030; }
-  .type-FAIRY { background-color: #EE99AC; }
-  .type-FIGHTING { background-color: #C03028; }
-  .type-FIRE { background-color: #F08030; }
-  .type-FLYING { background-color: #A890F0; }
-  .type-GHOST { background-color: #705898; }
-  .type-GRASS { background-color: #78C850; }
-  .type-GROUND { background-color: #E0C068; }
-  .type-ICE { background-color: #98D8D8; }
-  .type-NORMAL { background-color: #A8A878; }
-  .type-POISON { background-color: #A040A0; }
-  .type-PSYCHIC { background-color: #F85888; }
-  .type-ROCK { background-color: #B8A038; }
-  .type-STEEL { background-color: #B8B8D0; }
-  .type-WATER { background-color: #6890F0; }
+  .type-bug { background-color: #A8B820; }
+  .type-dark { background-color: #705848; }
+  .type-dragon { background-color: #7038F8; }
+  .type-electric { background-color: #F8D030; }
+  .type-fairy { background-color: #EE99AC; }
+  .type-fighting { background-color: #C03028; }
+  .type-fire { background-color: #F08030; }
+  .type-flying { background-color: #A890F0; }
+  .type-ghost { background-color: #705898; }
+  .type-grass { background-color: #78C850; }
+  .type-ground { background-color: #E0C068; }
+  .type-ice { background-color: #98D8D8; }
+  .type-normal { background-color: #A8A878; }
+  .type-poison { background-color: #A040A0; }
+  .type-psychic { background-color: #F85888; }
+  .type-rock { background-color: #B8A038; }
+  .type-steel { background-color: #B8B8D0; }
+  .type-water { background-color: #6890F0; }
 
   #create-pokemon-form {
     margin-bottom: 20px;
@@ -97,18 +97,19 @@ async function fetchPokemon() {
     }
   } catch (error) {
     console.error("Det oppstod en feil ved henting av Pokémon-data: ", error);
+  } finally {
+    loadSavedPokemon();
   }
-  loadSavedPokemon();
 }
 
 function displayPokemon(pokemonArray) {
   const container = document.getElementById('pokemon-container');
   container.innerHTML = '';
   pokemonArray.forEach(pokemon => {
-    const typeClass = pokemon.types.length ? `type-${pokemon.types[0].toUpperCase()}` : '';
+    const typeClass = `type-${pokemon.types[0]}`; // Sørger for riktig type klassenavn
     const card = `
       <div class="pokemon-card ${typeClass}">
-        <img src="${pokemon.image}" alt="${pokemon.name}" />
+        <img src="${pokemon.image}" alt="Bilde av ${pokemon.name}" />
         <h2>${pokemon.name}</h2>
         <p>Type: ${pokemon.types.join(', ')}</p>
         <button onclick="deletePokemon(${pokemon.id})">Slette</button>
@@ -120,7 +121,7 @@ function displayPokemon(pokemonArray) {
 
 function getNextId() {
   if (!allPokemon.length) return 1;
-  return Math.max(...allPokemon.map(p => p.id)) + 1; // Finner den høyeste ID-en og legger til 1
+  return Math.max(...allPokemon.map(p => p.id)) + 1;
 }
 
 function createPokemon() {
@@ -131,9 +132,9 @@ function createPokemon() {
     return;
   }
   const newPokemon = {
-    id: getNextId(), // Får neste tilgjengelige ID
+    id: getNextId(),
     name: nameInput.value,
-    image: 'https://example.com/default-pokemon-image.png', // Standard bilde-URL
+    image: 'https://example.com/default-pokemon-image.png',
     types: [typeSelect.value],
   };
 
@@ -141,8 +142,8 @@ function createPokemon() {
   savePokemonToLocalStorage();
   displayPokemon(allPokemon);
 
-  nameInput.value = ''; // Tøm input-feltet
-  typeSelect.value = ''; // Tøm select-feltet
+  nameInput.value = '';
+  typeSelect.value = '';
 }
 
 function savePokemonToLocalStorage() {
